@@ -74,7 +74,8 @@ module lab_top
     // When one key is in pressed position - the frequency increases,
     // when another key is in pressed position - the frequency decreases.
     // Change the period increment / decrement and see what happens.
-
+    
+    /*
     logic [31:0] period;
 
     localparam min_period = clk_mhz * 1000 * 1000 / 50,
@@ -84,7 +85,7 @@ module lab_top
         if (rst)
             period <= 32' ((min_period + max_period) / 2);
         else if (key [0] & period != max_period)
-            period <= period + 32'h1;
+            period <= period + 32'h9;
         else if (key [1] & period != min_period)
             period <= period - 32'h1;
 
@@ -107,7 +108,8 @@ module lab_top
             cnt_2 <= cnt_2 + 1'd1;
 
     assign led = cnt_2;
-
+    */
+    
     //------------------------------------------------------------------------
 
     // 4 bits per hexadecimal digit
@@ -129,5 +131,61 @@ module lab_top
     //
     // 1. Double the frequency when one key is pressed and released.
     // 2. Halve the frequency when another key is pressed and released.
+
+
+    logic [31:0] period;
+
+    localparam min_period = clk_mhz * 1000 * 1000 / 30,
+               max_period = clk_mhz * 1000 * 1000 *  3;
+
+    wire key1 = key[0];
+    wire key2 = key[1];
+    
+    logic key1_r;
+    logic key2_r;
+
+    always_ff @ (posedge clk or posedge rst)
+        if (rst)
+            key1_r <= '0;
+        else
+            key1_r <= key1;
+
+    wire key1_pressed = ~ key1 & key1_r;
+
+    always_ff @ (posedge clk or posedge rst)
+        if (rst)
+            key2_r <= '0;
+        else
+            key2_r <= key2;
+
+    wire key2_pressed = ~ key2 & key2_r;
+
+    always_ff @ (posedge clk or posedge rst)
+        if (rst)
+            period <= 32' ((min_period + max_period) / 2);
+        else if (key1_pressed & period != max_period)
+            period <= 2 * period;
+        else if (key2_pressed & period != min_period)
+            period <= period / 2;
+
+    logic [31:0] cnt_1;
+
+    always_ff @ (posedge clk or posedge rst)
+        if (rst)
+            cnt_1 <= '0;
+        else if (cnt_1 == '0)
+            cnt_1 <= period - 1'b1;
+        else
+            cnt_1 <= cnt_1 - 1'd1;
+
+    logic [31:0] cnt_2;
+
+    always_ff @ (posedge clk or posedge rst)
+        if (rst)
+            cnt_2 <= '0;
+        else if (cnt_1 == '0)
+            cnt_2 <= cnt_2 + 1'd1;
+
+    assign led = cnt_2;
 
 endmodule

@@ -78,11 +78,11 @@ module lab_top
         else
             cnt <= cnt + 1'd1;
 
-    wire enable = (cnt [22:0] == '0);
+    wire enable = (cnt [16:0] == '0);
 
     //------------------------------------------------------------------------
 
-    logic [w_digit:0] shift_reg;
+    logic [w_digit - 1:0] shift_reg;
 
     always_ff @ (posedge clk or posedge rst)
       if (rst)
@@ -90,7 +90,7 @@ module lab_top
       else if (enable)
         shift_reg <= { shift_reg [0], shift_reg [w_digit - 1:1] };
 
-    assign led = w_led' (shift_reg);
+    //assign led = w_led' (shift_reg);
 
     //------------------------------------------------------------------------
 
@@ -110,6 +110,10 @@ module lab_top
         P     = 8'b1100_1110,
         G     = 8'b1011_1100,
         A     = 8'b1110_1110,
+        E     = 8'b1001_1110,
+        O     = 8'b1111_1100,
+        R     = 8'b1100_1100,
+        K     = 8'b1010_1110,
         space = 8'b0000_0000
     }
     seven_seg_encoding_e;
@@ -117,12 +121,16 @@ module lab_top
     seven_seg_encoding_e letter;
 
     always_comb
-      case (4' (shift_reg))
-      4'b1000: letter = F;
-      4'b0100: letter = P;
-      4'b0010: letter = G;
-      4'b0001: letter = A;
-      default: letter = space;
+      case (8' (shift_reg))
+      8'b1000_0000: letter = E;
+      8'b0100_0000: letter = G;
+      8'b0010_0000: letter = O;
+      8'b0001_0000: letter = R;
+      8'b0000_1000: letter = K;
+      8'b0000_0100: letter = O;
+      8'b0000_0010: letter = K;
+      8'b0000_0001: letter = O;
+      //default: letter = space;
       endcase
 
     assign abcdefgh = letter;
@@ -130,12 +138,29 @@ module lab_top
 
     // Exercise 1: Increase the frequency of enable signal
     // to the level your eyes see the letters as a solid word
-    // without any blinking. What is the threshold of such frequency?
+    // without any blinking. What is the threshold of such frequency? enable = 2^17 * freq
 
     // Exercise 2: Put your name or another word to the display.
+
+    /*
+      always_comb
+      case (8' (shift_reg))
+      8'b1000_0000: letter = E;
+      8'b0100_0000: letter = G;
+      8'b0010_0000: letter = O;
+      8'b0001_0000: letter = R;
+      8'b0000_1000: letter = K;
+      8'b0000_0100: letter = O;
+      8'b0000_0010: letter = K;
+      8'b0000_0001: letter = O;
+      default: letter = space;
+      endcase
+    */
 
     // Exercise 3: Comment out the "default" clause from the "case" statement
     // in the "always" block,and re-synthesize the example.
     // Are you getting any warnings or errors? Try to explain why.
+
+    // "Error: always_comb construct does not infer purely combinational logic."
 
 endmodule
